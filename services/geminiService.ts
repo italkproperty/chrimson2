@@ -3,14 +3,26 @@ import { GoogleGenAI } from "@google/genai";
 import { BlogContent } from "../types";
 
 // Initialize Gemini Client following coding guidelines
-// Fix: Use Vite environment variable
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+// Fix: Lazy initialization to avoid crashes when API key is missing
+let ai: GoogleGenAI | null = null;
+
+const getAIClient = () => {
+  if (!ai) {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("Gemini API key not found. Please set VITE_GEMINI_API_KEY environment variable.");
+    }
+    ai = new GoogleGenAI({ apiKey });
+  }
+  return ai;
+};
 
 // --- Consultant Chat ---
 export const getConsultationAdvice = async (userQuery: string): Promise<string> => {
-  if (!import.meta.env.VITE_GEMINI_API_KEY) return "I'm sorry, the consultation AI is currently offline (Missing API Key).";
-
   try {
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) return "I'm sorry, the consultation AI is currently offline (Missing API Key).";
+
     // Fix: Select model based on task type. Basic Text Task -> 'gemini-3-flash-preview'
     const model = "gemini-3-flash-preview";
     const systemInstruction = `You are an expert business consultant for 'Chrimson Consultants' in Namibia. 
@@ -23,7 +35,7 @@ export const getConsultationAdvice = async (userQuery: string): Promise<string> 
     - CCs (Close Corporations) are legacy but still exist; Pty Ltd is standard for new companies.
     If the user asks for prices, refer to: Starter: N$ 1,500, Pty Ltd: N$ 3,850, Financial: N$ 8,500.`;
 
-    const response = await ai.models.generateContent({
+    const response = await getAIClient().models.generateContent({
       model,
       contents: userQuery,
       config: { systemInstruction, temperature: 0.7 }
@@ -128,7 +140,7 @@ export const generateBlogPost = async (params: BlogGenerationParams): Promise<Ge
       }
     `;
 
-    const response = await ai.models.generateContent({
+    const response = await getAIClient().models.generateContent({
       model,
       contents: prompt,
       config: {
@@ -184,7 +196,7 @@ export const translateBlogContent = async (
       }
     `;
 
-    const response = await ai.models.generateContent({
+    const response = await getAIClient().models.generateContent({
       model,
       contents: prompt,
       config: { responseMimeType: "application/json" }
