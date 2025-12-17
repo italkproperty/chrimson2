@@ -3,12 +3,12 @@ import { GoogleGenAI } from "@google/genai";
 import { BlogContent } from "../types";
 
 // Initialize Gemini Client following coding guidelines
-// Fix: Use named parameter for apiKey and obtain directly from process.env.API_KEY
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Fix: Use named parameter for apiKey and obtain directly from process.env.GEMINI_API_KEY
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // --- Consultant Chat ---
 export const getConsultationAdvice = async (userQuery: string): Promise<string> => {
-  if (!process.env.API_KEY) return "I'm sorry, the consultation AI is currently offline (Missing API Key).";
+  if (!process.env.GEMINI_API_KEY) return "I'm sorry, the consultation AI is currently offline (Missing API Key).";
 
   try {
     // Fix: Select model based on task type. Basic Text Task -> 'gemini-3-flash-preview'
@@ -68,7 +68,7 @@ Context for Internal Linking (Use these exact hrefs when mentioning these terms)
 `;
 
 export const generateBlogPost = async (params: BlogGenerationParams): Promise<GeneratedBlogResponse | null> => {
-  if (!process.env.API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     console.error("API Key missing");
     return null;
   }
@@ -155,7 +155,7 @@ export const translateBlogContent = async (
   content: BlogContent, 
   targetLang: 'de' | 'pt' | 'zh'
 ): Promise<BlogContent | null> => {
-  if (!process.env.API_KEY) return null;
+  if (!process.env.GEMINI_API_KEY) return null;
 
   const langNames = { de: 'German', pt: 'Portuguese', zh: 'Simplified Chinese' };
   
